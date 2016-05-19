@@ -2,6 +2,7 @@
  * Test cases for MyORM
  * Created by steve on 2016-05-19.
  */
+'use strict';
 
 const expect = require('chai').expect;
 

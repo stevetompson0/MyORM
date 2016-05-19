@@ -9,8 +9,8 @@ const mysql = require('mysql');
 
 // Note that the library's classes are not properties of the main export
 // so we require and promisifyAll them manually
-Promise.promisifyAll(require("mysql/lib/Connection").prototype);
-Promise.promisifyAll(require("mysql/lib/Pool").prototype);
+Promise.promisifyAll(require('mysql/lib/Connection').prototype);
+Promise.promisifyAll(require('mysql/lib/Pool').prototype);
 
 /**
  * MyORM -- a nodejs ORM for MySQL
@@ -20,10 +20,11 @@ class MyORM {
 
   /**
    * constructor for the class
-   * @param data -- object containing a connection object with parameters: host, port, user, password, database
+   * @param data -- object containing a connection object
+   *     with parameters: host, port, user, password, database
    */
   constructor(data) {
-    if (typeof data == 'object' && typeof data.connection == 'object') {
+    if (typeof data === 'object' && typeof data.connection === 'object') {
       this.pool = mysql.createPool(data.connection);
     } else {
       throw new Error('Invalid initial data');
@@ -44,15 +45,12 @@ class MyORM {
    * @param query -- query object
    */
   find(query) {
-    if (typeof query == 'object') {
-
+    if (typeof query === 'object') {
       return this;
-    } else {
-      throw new Error('Invalid query format');
     }
+
+    throw new Error('Invalid query format');
   }
-
-
 
 }
 
