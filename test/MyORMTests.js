@@ -13,6 +13,12 @@ const orm = new MyORM({
 });
 
 describe('MyORMTests', () => {
+  describe('convertQuery-function-test', () => {
+    it('should return the correct converted query', () => {
+      const convertedQuery = MyORM.convertQuery({id: 5, name: 'Helen'});
+      expect(convertedQuery).to.equal('`id`=5 AND `name`=\'Helen\'');
+    });
+  });
   describe('find-query-tests', () => {
     it('should return results', () => {
 

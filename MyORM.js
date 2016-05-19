@@ -36,7 +36,7 @@ class MyORM {
    * @param tableName
    */
   table(tableName) {
-    this.table = tableName;
+    this.table = mysql.escapeId(tableName);
     return this;
   }
 
@@ -45,11 +45,35 @@ class MyORM {
    * @param query -- query object
    */
   find(query) {
-    if (typeof query === 'object') {
-      return this;
+    // no query condition
+    if (!query) {
+      this.hasQuery = false;
+    } else if (typeof query === 'object') {  // correct query format
+      this.hasQuery = true;
+      // TODO convert query object to query string
+      this.query = MyORM.convertQuery(query);
+    } else {
+      throw new Error('Invalid query format'); // incorrect query format
     }
+    return this;
+  }
 
-    throw new Error('Invalid query format');
+  /**
+   * convertQuery -- convert a query object to query string
+   * @param query: query object with conditions in key-value pairs
+   *
+   * the function will also escape key, value to defend potential SQL injection attacks
+   */
+  static convertQuery(query) {
+    let res = '';
+    Object.keys(query).forEach((key, index) => {
+      if (index !== 0) {
+        res += ' AND ';
+      }
+      res += `${mysql.escapeId(key)}=${mysql.escape(query[key])}`;
+    });
+
+    return res;
   }
 
 }
