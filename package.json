@@ -9,6 +9,7 @@
   "author": "steve",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.4.0",
     "mysql": "^2.10.2"
   },
   "devDependencies": {
