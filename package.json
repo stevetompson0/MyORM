@@ -1,0 +1,17 @@
+{
+  "name": "mysql-orm",
+  "version": "1.0.0",
+  "description": "MySQL ORM for nodejs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "steve",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.10.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0"
+  }
+}
