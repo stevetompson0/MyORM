@@ -77,8 +77,23 @@ describe('MyORMTests', () => {
         done();
       });
     });
-
-
   });
 
+  describe('delete-query-tests', () => {
+    it('should delete a single entry', done => {
+      orm.table('Person').delete({ id: 1 }).
+      then(result => {
+        console.log(result);
+        done();
+      });
+    });
+
+    it('should delete all entries', done => {
+      orm.table('Person').delete().
+      then(result => {
+        console.log(result);
+        done();
+      });
+    });
+  });
 });

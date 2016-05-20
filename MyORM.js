@@ -46,14 +46,7 @@ class MyORM {
   find(query) {
     // no query condition
     this.action = 'SELECT';
-    if (!query) {
-      this.hasQuery = false;
-    } else if (typeof query === 'object') {  // correct query format
-      this.hasQuery = true;
-      this.query = MyORM.convertQuery(query, 'AND');
-    } else {
-      throw new Error('Invalid query format'); // incorrect query format
-    }
+    this.checkAndProcessQuery(query);
     return this;
   }
 
@@ -84,17 +77,22 @@ class MyORM {
    */
   update(query, update) {
     this.action = 'UPDATE';
-    if (!update || typeof query !== 'object' || typeof update !== 'object') {
+    if (!update || typeof update !== 'object' || Object.keys(update).length === 0) {
       throw new Error('Invalid update command format.');
     } else {
-      if (Object.keys(query).length > 0) {
-        this.hasQuery = true;
-        this.query = MyORM.convertQuery(query, 'AND');
-      } else {
-        this.hasQuery = false;
-      }
+      this.checkAndProcessQuery(query);
       this.updateStr = MyORM.convertQuery(update, ',');
     }
+    return this;
+  }
+
+  /**
+   * delete entries satisfying the query
+   * @param query: query condition
+   */
+  delete(query) {
+    this.action = 'DELETE';
+    this.checkAndProcessQuery(query);
     return this;
   }
 
@@ -130,7 +128,8 @@ class MyORM {
       cmd = this.getSelectCmd();
     } else if (this.action === 'UPDATE') {
       cmd = this.getUpdateCmd();
-      console.log(cmd);
+    } else if (this.action === 'DELETE') {
+      cmd = this.getDeleteCmd();
     }
     this.clear();
     return this.pool.queryAsync(cmd);
@@ -165,6 +164,37 @@ class MyORM {
       cmd += ` WHERE ${this.query}`;
     }
     return cmd;
+  }
+
+  /**
+   * function to generate the Delete cmd
+   */
+  getDeleteCmd() {
+    let cmd = '';
+    cmd += `DELETE FROM ${this.tableName}`;
+    if (this.hasQuery) {
+      cmd += ` WHERE ${this.query}`;
+    }
+    return cmd;
+  }
+
+  /**
+   * validate the query object and store the parsed query
+   * @param query: query object
+   */
+  checkAndProcessQuery(query) {
+    if (!query) {  // empty query
+      this.hasQuery = false;
+    } else if (typeof query === 'object') {  // correct query format
+      if (Object.keys(query).length > 0) {
+        this.hasQuery = true;
+        this.query = MyORM.convertQuery(query, 'AND');
+      } else {
+        this.hasQuery = false;  // empty query
+      }
+    } else {
+      throw new Error('Invalid query format'); // incorrect query format
+    }
   }
 
   /**
