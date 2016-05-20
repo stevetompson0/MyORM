@@ -14,7 +14,6 @@ Promise.promisifyAll(require('mysql/lib/Pool').prototype);
 
 /**
  * MyORM -- a nodejs ORM for MySQL
- * TODO: dealing with errors
  */
 class MyORM {
 
@@ -46,16 +45,47 @@ class MyORM {
    */
   find(query) {
     // no query condition
+    this.action = 'SELECT';
     if (!query) {
       this.hasQuery = false;
     } else if (typeof query === 'object') {  // correct query format
       this.hasQuery = true;
-      // TODO convert query object to query string
       this.query = MyORM.convertQuery(query);
     } else {
       throw new Error('Invalid query format'); // incorrect query format
     }
     return this;
+  }
+
+  /**
+   * then -- indicate the query is fully given so that we can perform the async query
+   * @param callback: the callback to be performed after the query
+   * @return: a promise with query results
+   */
+  then(callback) {
+    return this.executeQuery().then(callback);
+  }
+
+  /**
+   * clear - function to clear all properties (except the connection pool) for next query
+   */
+  clear() {
+    this.action = undefined;
+    this.hasQuery = undefined;
+  }
+
+  /**
+   * execute -- function to generate full query string and perform the query
+   */
+  executeQuery() {
+    let cmd = '';
+    if (this.action === 'SELECT') {
+      cmd += `SELECT * FROM ${this.table} `;
+      if (this.hasQuery) {
+        cmd += ` WHERE ${this.query}`;
+      }
+      return this.pool.queryAsync(cmd);
+    }
   }
 
   /**
