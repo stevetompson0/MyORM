@@ -9,7 +9,8 @@ const expect = require('chai').expect;
 const MyORM = require('../MyORM');
 const orm = new MyORM({
   // mysql连接信息
-  connection: { host: '127.0.0.1', port: 3306, user: 'root', password: '', database: 'test' }
+  connection: { host: '127.0.0.1', port: 3306, user: 'mysql_admin',
+    password: 'development', database: 'test' }
 });
 
 describe('MyORMTests', () => {
@@ -20,8 +21,13 @@ describe('MyORMTests', () => {
     });
   });
   describe('find-query-tests', () => {
-    it('should return results', () => {
-
+    it('should return results', (done) => {
+      orm.table('Person').find({id: 2}).then(list => {
+        console.log('result', list);
+        done();
+      }).catch(err => {
+        console.log(err);
+      });
     });
   });
 });
