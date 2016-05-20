@@ -97,6 +97,16 @@ class MyORM {
   }
 
   /**
+   * find the first entry that matches the query
+   * @param query: query condition
+   */
+  findOne(query) {
+    this.action = 'FINDONE';
+    this.checkAndProcessQuery(query);
+    return this;
+  }
+
+  /**
    * then -- indicate the query is fully given so that we can perform the async query
    * @param callback: the callback to be performed after the query
    * @return: a promise with query results
@@ -130,6 +140,9 @@ class MyORM {
       cmd = this.getUpdateCmd();
     } else if (this.action === 'DELETE') {
       cmd = this.getDeleteCmd();
+    } else if (this.action === 'FINDONE') {
+      cmd = this.getSelectCmd();
+      return this.pool.queryAsync(cmd).then(list => list[0] || null);
     }
     this.clear();
     return this.pool.queryAsync(cmd);

@@ -59,6 +59,19 @@ describe('MyORMTests', () => {
   });
 
   /**
+   * test cases for findOne function
+   */
+  describe('findOne-query-tests', () => {
+    it('should find the first entry', done => {
+      orm.table('Person').findOne({name: 'hello'}).
+      then(result => {
+        console.log(result);
+        done();
+      });
+    });
+  });
+
+  /**
    * test cases for update function
    */
   describe('update-query-tests', () => {
@@ -79,6 +92,9 @@ describe('MyORMTests', () => {
     });
   });
 
+  /**
+   * test cases for delete function
+   */
   describe('delete-query-tests', () => {
     it('should delete a single entry', done => {
       orm.table('Person').delete({ id: 1 }).
