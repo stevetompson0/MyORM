@@ -50,7 +50,7 @@ class MyORM {
       this.hasQuery = false;
     } else if (typeof query === 'object') {  // correct query format
       this.hasQuery = true;
-      this.query = MyORM.convertQuery(query);
+      this.query = MyORM.convertQuery(query, 'AND');
     } else {
       throw new Error('Invalid query format'); // incorrect query format
     }
@@ -78,6 +78,27 @@ class MyORM {
   }
 
   /**
+   * update -- function to set update command
+   * @param query: the query to find the entry
+   * @param update: the update to the entry
+   */
+  update(query, update) {
+    this.action = 'UPDATE';
+    if (!update || typeof query !== 'object' || typeof update !== 'object') {
+      throw new Error('Invalid update command format.');
+    } else {
+      if (Object.keys(query).length > 0) {
+        this.hasQuery = true;
+        this.query = MyORM.convertQuery(query, 'AND');
+      } else {
+        this.hasQuery = false;
+      }
+      this.updateStr = MyORM.convertQuery(update, ',');
+    }
+    return this;
+  }
+
+  /**
    * then -- indicate the query is fully given so that we can perform the async query
    * @param callback: the callback to be performed after the query
    * @return: a promise with query results
@@ -96,6 +117,8 @@ class MyORM {
     this.skipNum = undefined;
     this.hasLimit = undefined;
     this.limitNum = undefined;
+    this.updateStr = undefined;
+    this.query = undefined;
   }
 
   /**
@@ -104,33 +127,58 @@ class MyORM {
   executeQuery() {
     let cmd = '';
     if (this.action === 'SELECT') {
-      cmd += `SELECT * FROM ${this.tableName} `;
-      if (this.hasQuery) {
-        cmd += ` WHERE ${this.query} `;
-      }
-      if (this.hasLimit && this.hasSkip) {  // has limit and skip
-        cmd += `LIMIT ${this.skipNum}, ${this.limitNum}`;
-      } else if (this.hasLimit) {           // only has limit
-        cmd += `LIMIT ${this.limitNum}`;
-      } else if (this.hasSkip) {                              // only has skip
-        cmd += `LIMIT ${this.skipNum}, 18446744073709551615`;
-      }
-      this.clear();
-      return this.pool.queryAsync(cmd);
+      cmd = this.getSelectCmd();
+    } else if (this.action === 'UPDATE') {
+      cmd = this.getUpdateCmd();
+      console.log(cmd);
     }
+    this.clear();
+    return this.pool.queryAsync(cmd);
+  }
+
+  /**
+   * function to generate the SELECT cmd
+   */
+  getSelectCmd() {
+    let cmd = '';
+    cmd += `SELECT * FROM ${this.tableName} `;
+    if (this.hasQuery) {
+      cmd += ` WHERE ${this.query} `;
+    }
+    if (this.hasLimit && this.hasSkip) {  // has limit and skip
+      cmd += `LIMIT ${this.skipNum}, ${this.limitNum}`;
+    } else if (this.hasLimit) {           // only has limit
+      cmd += `LIMIT ${this.limitNum}`;
+    } else if (this.hasSkip) {                              // only has skip
+      cmd += `LIMIT ${this.skipNum}, 18446744073709551615`;
+    }
+    return cmd;
+  }
+
+  /**
+   * function to generate the Update cmd
+   */
+  getUpdateCmd() {
+    let cmd = '';
+    cmd += `UPDATE ${this.tableName} SET ${this.updateStr}`;
+    if (this.hasQuery) {
+      cmd += ` WHERE ${this.query}`;
+    }
+    return cmd;
   }
 
   /**
    * convertQuery -- convert a query object to query string
    * @param query: query object with conditions in key-value pairs
+   * @param seperator: the separator used to concatenate the query
    *
    * the function will also escape key, value to defend potential SQL injection attacks
    */
-  static convertQuery(query) {
+  static convertQuery(query, separator) {
     let res = '';
     Object.keys(query).forEach((key, index) => {
       if (index !== 0) {
-        res += ' AND ';
+        res += ` ${separator} `;
       }
       res += `${mysql.escapeId(key)}=${mysql.escape(query[key])}`;
     });
