@@ -20,9 +20,37 @@ describe('MyORMTests', () => {
       expect(convertedQuery).to.equal('`id`=5 AND `name`=\'Helen\'');
     });
   });
+
   describe('find-query-tests', () => {
     it('should return results', (done) => {
-      orm.table('Person').find({id: 2}).then(list => {
+      orm.table('Person').find({ id: 2 }).then(list => {
+        console.log('result', list);
+        done();
+      }).catch(err => {
+        console.log(err);
+      });
+    });
+
+    it('should return skipped results', (done) => {
+      orm.table('Person').find().skip(1).then(list => {
+        console.log('result', list);
+        done();
+      }).catch(err => {
+        console.log(err);
+      });
+    });
+
+    it('should return limited results', (done) => {
+      orm.table('Person').find().limit(1).then(list => {
+        console.log('result', list);
+        done();
+      }).catch(err => {
+        console.log(err);
+      });
+    });
+
+    it('should return skipped and limited results', (done) => {
+      orm.table('Person').find().skip(1).limit(1).then(list => {
         console.log('result', list);
         done();
       }).catch(err => {

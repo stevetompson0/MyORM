@@ -35,7 +35,7 @@ class MyORM {
    * @param tableName
    */
   table(tableName) {
-    this.table = mysql.escapeId(tableName);
+    this.tableName = mysql.escapeId(tableName);
     return this;
   }
 
@@ -58,6 +58,26 @@ class MyORM {
   }
 
   /**
+   * skip -- skip a given number of items
+   * @param num: the number of items to be skipped
+   */
+  skip(num) {
+    this.hasSkip = true;
+    this.skipNum = mysql.escape(num);
+    return this;
+  }
+
+  /**
+   * limit -- limit the number of items to be returned
+   * @param num: the number of items to be limited
+   */
+  limit(num) {
+    this.hasLimit = true;
+    this.limitNum = mysql.escape(num);
+    return this;
+  }
+
+  /**
    * then -- indicate the query is fully given so that we can perform the async query
    * @param callback: the callback to be performed after the query
    * @return: a promise with query results
@@ -72,6 +92,10 @@ class MyORM {
   clear() {
     this.action = undefined;
     this.hasQuery = undefined;
+    this.hasSkip = undefined;
+    this.skipNum = undefined;
+    this.hasLimit = undefined;
+    this.limitNum = undefined;
   }
 
   /**
@@ -80,10 +104,18 @@ class MyORM {
   executeQuery() {
     let cmd = '';
     if (this.action === 'SELECT') {
-      cmd += `SELECT * FROM ${this.table} `;
+      cmd += `SELECT * FROM ${this.tableName} `;
       if (this.hasQuery) {
-        cmd += ` WHERE ${this.query}`;
+        cmd += ` WHERE ${this.query} `;
       }
+      if (this.hasLimit && this.hasSkip) {  // has limit and skip
+        cmd += `LIMIT ${this.skipNum}, ${this.limitNum}`;
+      } else if (this.hasLimit) {           // only has limit
+        cmd += `LIMIT ${this.limitNum}`;
+      } else if (this.hasSkip) {                              // only has skip
+        cmd += `LIMIT ${this.skipNum}, 18446744073709551615`;
+      }
+      this.clear();
       return this.pool.queryAsync(cmd);
     }
   }
